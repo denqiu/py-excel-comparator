@@ -27,14 +27,15 @@ class ExcelComparator:
         self.csv_path = filename.replace(".xlsx", ".csv")
         if os.path.exists(self.csv_path):
             print("\nReading .csv file...")
-            self.data_frame = pandas.read_csv(encoding='utf-8', filepath_or_buffer=filename, header=0, na_filter=na_filter).fillna("")
+            self.data_frame = pandas.read_csv(filepath_or_buffer=self.csv_path, header=0,
+                                              na_filter=na_filter).fillna("")
             print("Done.")
         else:
             print("\nReading .xlsx file...")
             self.data_frame = pandas.read_excel(io=filename, sheet_name=sheet_name, header=start_row,
                                                 na_filter=na_filter).fillna("")
             print("Writing .csv file...")
-            self.data_frame.to_csv(encoding='utf-8', index=False, path_or_buf=self.csv_path)
+            self.data_frame.to_csv(index=False, path_or_buf=self.csv_path)
             print("Done. From now on, .csv file will be read instead of .xlsx file. To update, delete .csv file.")
         self.lookup_indices = {}
         self.json_data = {}
