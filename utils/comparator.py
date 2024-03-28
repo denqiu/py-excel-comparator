@@ -27,7 +27,8 @@ class ExcelComparator:
         self.csv_path = filename.replace(".xlsx", ".csv")
         if os.path.exists(self.csv_path):
             print("\nReading .csv file...")
-            self.data_frame = pandas.read_csv(filepath_or_buffer=filename, header=0, na_filter=na_filter).fillna("")
+            self.data_frame = pandas.read_csv(filepath_or_buffer=self.csv_path, header=0,
+                                              na_filter=na_filter).fillna("")
             print("Done.")
         else:
             print("\nReading .xlsx file...")
