@@ -12,7 +12,7 @@ class ExcelComparator:
     match_value = "Match"
     not_found_value = "Doesn't exist"
 
-    def __init__(self, filename: str, sheet_name="Sheet1", start_row=0, na_filter=False):
+    def __init__(self, excel_path: str, sheet_name="Sheet1", start_row=0, na_filter=False):
         """
         1: If csv file exists, read csv file. Otherwise, read Excel file into a data frame. Then write to csv file.
 
@@ -23,8 +23,8 @@ class ExcelComparator:
         :param start_row: 0-based index number.
         :param na_filter: False by default to prevent replacement of NA-like values (None, N/A) with NaN.
         """
-        self.filename = filename
-        self.csv_path = filename.replace(".xlsx", ".csv")
+        self.excel_path = excel_path
+        self.csv_path = excel_path.replace(".xlsx", ".csv")
         if os.path.exists(self.csv_path):
             print("\nReading .csv file...")
             self.data_frame = pandas.read_csv(filepath_or_buffer=self.csv_path, header=0,
@@ -32,7 +32,7 @@ class ExcelComparator:
             print("Done.")
         else:
             print("\nReading .xlsx file...")
-            self.data_frame = pandas.read_excel(io=filename, sheet_name=sheet_name, header=start_row,
+            self.data_frame = pandas.read_excel(io=excel_path, sheet_name=sheet_name, header=start_row,
                                                 na_filter=na_filter).fillna("")
             print("Writing .csv file...")
             self.data_frame.to_csv(index=False, path_or_buf=self.csv_path)
