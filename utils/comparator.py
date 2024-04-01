@@ -78,7 +78,7 @@ class ExcelComparator:
         TODO: Simply compare column values and comments.
         """
 
-    def fastest_auto_vectorized(self, matcher: typing.Self, column: str, matcher_column: str,
+    def fastest_sql_vectorized(self, matcher: typing.Self, column: str, matcher_column: str,
                                 lookup_columns: list[str]):
         """
         From Gemini after taking in the pandas version.
