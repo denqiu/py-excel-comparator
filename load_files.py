@@ -1,9 +1,10 @@
 import os
 
 from utils.comparator import ExcelComparator
+env_file = os.getenv('GITHUB_ENV')
 
-if os.environ.get("GITHUB_ENV"):
-    with open(os.environ.get("GITHUB_ENV"), 'r') as file:
+if env_file:
+    with open(env_file, 'r') as file:
         for line in file:
             print(line)
 
