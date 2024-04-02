@@ -2,6 +2,7 @@ import os
 
 from utils.comparator import ExcelComparator
 env_file = os.getenv('GITHUB_ENV')
+print(env_file)
 
 if env_file:
     with open(env_file, 'r') as file:
