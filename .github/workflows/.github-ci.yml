@@ -3,6 +3,9 @@ name: Excel Comparator
 on:
   push:
     branches: [ master ]
+    
+env:
+  VARS: vars
 
 jobs:
   deploy:

@@ -8,6 +8,12 @@ if env_file:
     with open(env_file, 'r') as file:
         for line in file:
             print(line)
+vars = os.getenv("VARS")
+print(vars)
+
+print("\nViewing os env vars:")
+for label, value in os.environ.items():
+    print(f"{label}: '{value}'")
 
 # files_directory = os.path.join(os.path.dirname(__file__), 'files')
 # if not os.path.exists(files_directory):
