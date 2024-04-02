@@ -2,8 +2,10 @@ import os
 
 from utils.comparator import ExcelComparator
 
-for label, value in os.environ.items():
-    print(f"{label}: '{value}")
+if os.getenv("GITHUB_ENV"):
+    with open(os.getenv("GITHUB_ENV"), 'r') as file:
+        for line in file:
+            print(line)
 
 # files_directory = os.path.join(os.path.dirname(__file__), 'files')
 # if not os.path.exists(files_directory):
