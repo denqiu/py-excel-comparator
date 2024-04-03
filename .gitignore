@@ -2,3 +2,5 @@
 /.idea
 /files
 __pycache__
+
+.env
