@@ -7,36 +7,19 @@ import numpy
 import pandas
 
 
-class ExcelComparator:
+class DataFrameComparator:
     match_column_prefix = "(Matches)"
     match_value = "Match"
     not_found_value = "Doesn't exist"
 
-    def __init__(self, excel_path: str, sheet_name="Sheet1", start_row=0, na_filter=False):
+    def __init__(self, data_frame: pandas.DataFrame):
         """
-        1: If csv file exists, read csv file. Otherwise, read Excel file into a data frame. Then write to csv file.
+        1: NaN values are expected to be empty. Replace NaN values with empty string.
 
-        2: Any NaN values are expected to be empty. Replace NaN values with empty string.
-
-        Note: NA values that are not filled in caused working masks to return an empty data frame.
+        2: Note: NA values that are not filled in caused working masks to return an empty data frame.
         They don't trigger any errors.
-        :param start_row: 0-based index number.
-        :param na_filter: False by default to prevent replacement of NA-like values (None, N/A) with NaN.
         """
-        self.excel_path = excel_path
-        self.csv_path = excel_path.replace(".xlsx", ".csv")
-        if os.path.exists(self.csv_path):
-            print("\nReading .csv file...")
-            self.data_frame = pandas.read_csv(filepath_or_buffer=self.csv_path, header=0,
-                                              na_filter=na_filter).fillna("")
-            print("Done.")
-        else:
-            print("\nReading .xlsx file...")
-            self.data_frame = pandas.read_excel(io=excel_path, sheet_name=sheet_name, header=start_row,
-                                                na_filter=na_filter).fillna("")
-            print("Writing .csv file...")
-            self.data_frame.to_csv(index=False, path_or_buf=self.csv_path)
-            print("Done. From now on, .csv file will be read instead of .xlsx file. To update, delete .csv file.")
+        self.data_frame = data_frame.fillna("")
         self.lookup_indices = {}
         self.json_data = {}
         self.numpy_rows = numpy.array([])
@@ -73,13 +56,17 @@ class ExcelComparator:
         else:
             self.data_frame.insert(loc=self.data_frame.columns.get_loc(column) + 1, column=match_col, value=matches)
 
+    def analyze_columns(self, columns: list[str], lookup_columns: list[str]):
+        # TODO: self.data_frame[[lookup_columns, columns]].groupby(lookup_columns)[columns].apply(lambda c: c.unique()).reset_index()
+        pass
+
     def compare_columns(self, matcher: typing.Self):
         """
         TODO: Simply compare column values and comments.
         """
 
     def fastest_sql_vectorized(self, matcher: typing.Self, column: str, matcher_column: str,
-                                lookup_columns: list[str]):
+                               lookup_columns: list[str]):
         """
         From Gemini after taking in the pandas version.
 
@@ -242,3 +229,27 @@ class ExcelComparator:
             cell_value = self.json_data[column][f"{row_index}"]
             matches.append(ExcelComparator.match_value if cell_value == find_value else find_value)
         return matches
+
+
+class ExcelComparator(DataFrameComparator):
+
+    def __init__(self, excel_path: str, sheet_name="Sheet1", start_row=0, na_filter=False):
+        """
+        1: If csv file exists, read csv file. Otherwise, read Excel file into a data frame. Then write to csv file.
+
+        :param start_row: 0-based index number.
+        :param na_filter: False by default to prevent replacement of NA-like values (None, N/A) with NaN.
+        """
+        self.excel_path = excel_path
+        self.csv_path = excel_path.replace(".xlsx", ".csv")
+        if os.path.exists(self.csv_path):
+            print("\nReading .csv file...")
+            super().__init__(pandas.read_csv(filepath_or_buffer=self.csv_path, header=0, na_filter=na_filter))
+            print("Done.")
+        else:
+            print("\nReading .xlsx file...")
+            super().__init__(pandas.read_excel(io=excel_path, sheet_name=sheet_name, header=start_row,
+                                               na_filter=na_filter))
+            print("Writing .csv file...")
+            self.data_frame.to_csv(index=False, path_or_buf=self.csv_path)
+            print("Done. From now on, .csv file will be read instead of .xlsx file. To update, delete .csv file.")
