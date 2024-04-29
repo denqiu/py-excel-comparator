@@ -4,5 +4,5 @@ __pycache__
 
 # Ignore everything except json files
 files/
-#!files/*.json
+!files/*.json
 .env
