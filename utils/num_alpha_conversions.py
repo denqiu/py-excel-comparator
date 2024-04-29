@@ -22,7 +22,7 @@ class NumAlphaConversions:
     def __init__(self):
         self.base = 26
 
-    def _offset(self, pow_indices):
+    def _offset(self, pow_indices) -> numpy.ndarray:
         """
         Returns pow_indices - 1.
 
@@ -39,7 +39,7 @@ class NumAlphaConversions:
         """
         return pow_indices - 1
 
-    def _append_alpha_output(self, not_stopping, outputs, alphabet_positions, letter_type: LetterType):
+    def _append_alpha_output(self, not_stopping, outputs, alphabet_positions, letter_type: LetterType) -> numpy.ndarray:
         """
         Assigning numpy.char.add to outputs[not_stopping] did not prefix the new letter.
 
@@ -88,7 +88,7 @@ class NumAlphaConversions:
         outputs -= 1
         return outputs
 
-    def _pre_process_indices(self, indices):
+    def _pre_process_indices(self, indices) -> numpy.ndarray:
         if numpy.isscalar(indices):
             # Convert to array because masks don't work on individual numbers.
             # They only work with arrays.
@@ -136,9 +136,8 @@ class NumAlphaConversions:
             pow_indices
         )
 
-    def _find_affected_array_indices(self, adjust_alpha: bool, sum_pow: numpy.ndarray[int],
-                                     array_indices: numpy.ndarray[int], indices: numpy.ndarray[int],
-                                     pow_indices: numpy.ndarray[int]):
+    def _find_affected_array_indices(self, adjust_alpha: bool, sum_pow: numpy.ndarray, array_indices: numpy.ndarray,
+                                     indices: numpy.ndarray, pow_indices: numpy.ndarray) -> numpy.ndarray:
         """
         SUMMARY
         1: Find affected indices based on power index.
@@ -148,7 +147,7 @@ class NumAlphaConversions:
         FOR DEBUGGING
         1: Comment/uncomment line at the top to compare output before/after fix.
 
-        2: Comment/uncomment 2 lines to see searched indices and pow_indices.
+        2: Comment/uncomment 3 lines to see searched indices and pow_indices.
 
         NOTES (P[n] is short for power index at some n)
         Correct, 0-24 (A-Y), pow index=0
@@ -240,7 +239,7 @@ class NumAlphaConversions:
         # Useful for debugging purposes to see searched indices and powers.
         # searched_indices = indices[search_multiples]
         # searched_powers = pow_indices[search_multiples]
-        # power_sums = sum_pow[search_multiples]
+        # searched_sums = sum_pow[search_multiples]
         affected_non_multiples = []
         if search_multiples.any():
             # int array
@@ -263,7 +262,7 @@ class NumAlphaConversions:
         affected_indices = numpy.concatenate([indices[search_exact_numbers], affected_non_multiples])
         return array_indices[numpy.isin(indices, affected_indices)]
 
-    def fast_alt_num_to_alpha(self, indices, letter_type: LetterType):
+    def fast_alt_num_to_alpha(self, indices, letter_type: LetterType) -> tuple[numpy.ndarray, numpy.ndarray]:
         """
         OVERVIEW
         Ref: https://stackoverflow.com/a/57655623

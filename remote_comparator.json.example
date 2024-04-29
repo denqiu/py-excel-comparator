@@ -1,5 +1,23 @@
+# Template to describe data structure I developed to manage Excel data.
+# Comments are ok because this is not actually a JSON file.
+# Please make sure to remove comments in JSON file because comments are not supported!
+
+# Level 1 Terms:
+# * column: (Level 1 only) If specified, values in targeted column are exactly the same.
+# * values: Represent values/elements that go in the column, such as strings and numbers.
+# * counts: If specified, "numpy.repeat" is used to repeat each value up to specified number of times.
+
+# Level 2 Terms:
+# * values: Inherited from Level 1.
+# * counts: Inherited from Level 1.
+# * prefix: If specified, "numpy.char.mod" is used to add prefix to every element.
+# * order: If specified, "numpy.concatenate" is used to add specified values.
+# * range: If specified, "numpy.arange" is used to generate a range of numbers.
+# * list: A list of elements.
+
 {
   "[Column_1]": {
+# * Expected output: [*["Column-1-12"] * 10, *["Column-1-1"] * 22, *["Column-1-2"] * 8, *["Column-1-3"] * 3, *["Column-1-4"] * 9]
     "values": {
       "prefix": "Column-1-",
       "order": ["list","range"],
@@ -14,6 +32,7 @@
     }
   },
   "[Column_2]": {
+# * Expected output: ["Column-2-1", "Column-2-2", "Column-2-2", *["Column-2-3"] * 3, *["Column-2-4"] * 4, *["Column-2-5"] * 5], *["Column-2-6"] * 6, *["Column-2-7"] * 7, *["Column-2-8"] * 8]
     "values": {
       "prefix": "Column-2-",
       "range": {
@@ -26,6 +45,7 @@
     }
   },
   "[Column_3]": {
+# * Expected output: [*["Column-3-48"] * 12, *["Column-3-9"] * 2, *["Column-3-2"] * 9, *["Column-3-10"] * 21, *["Column-3-82"] * 8]
     "values": {
       "prefix": "Column-3-",
       "list": [48,9,2,10,82]
@@ -35,15 +55,17 @@
     }
   },
   "[Column_4]": {
+# * Expected output: [*["Column-4-1"] * 10,*["Column-4-2"] * 10,*["Column-4-3"] * 10,*["Column-4-4"] * 12,*["Column-4-5"] * 12,*["Column-4-6"] * 12,*["Column-4-7"] * 12,"Column-4-8","Column-4-9",*["Column-4-10"] * 22,*["Column-4-9"] * 22,*["Column-4-20"] * 22]
     "values": {
       "prefix": "Column-4-",
       "range": {
         "start": 1,
         "end": 11
       },
-      "list": [10,20]
+      "list": [9,20]
     },
     "counts": {
+      # equals "list": [10,10,10,12,12,12,12,1,1,22,22,22]
       "values": {
         "list": [10,12,1,22]
       },
@@ -53,8 +75,13 @@
     }
   },
   "[Column_5]": {
+# * Expected output: ["","","test","ab-32"]
     "values": {
       "list": ["","","test","ab-32"]
     }
+  },
+  "[Column_6]": {
+# * Expected output: Same as [Column_5]
+    "column": "[Column_5]"
   }
 }

@@ -1,4 +1,3 @@
-import itertools
 import json
 import os
 import typing
@@ -114,8 +113,8 @@ class DataFrameComparator:
             Otherwise, return lookup columns as is.
             """
             if self.has_duplicates:
-                return list(
-                    itertools.chain(*zip(lookup_columns, [f"{col} Occurrences" for col in lookup_columns])))
+                return numpy.array(list(zip(
+                    lookup_columns, numpy.char.mod("%s Occurrences", lookup_columns)))).flatten()
             return lookup_columns
 
         merged_df = add_occurrences(self.data_frame[columns].copy()).merge(
@@ -125,12 +124,14 @@ class DataFrameComparator:
             column = f"{column}_x"
             matcher_column = f"{matcher_column}_y"
         matches = numpy.where(
-            merged_df[column] == merged_df[matcher_column], ExcelComparator.match_value, merged_df[matcher_column]
+            merged_df[column] == merged_df[matcher_column],
+            ExcelComparator.match_value,
+            merged_df[matcher_column]
         )
         return matches
 
     def fast_manual_vectorized(self, matcher: typing.Self, column: str, matcher_column: str,
-                                  lookup_columns: list[str]):
+                               lookup_columns: list[str]):
         """
         From Gemini after providing info about BSOD. Turns out implementation is similar to the pandas version.
 
