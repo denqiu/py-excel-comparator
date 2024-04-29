@@ -1,0 +1,60 @@
+{
+  "[Column_1]": {
+    "values": {
+      "prefix": "Column-1-",
+      "order": ["list","range"],
+      "range": {
+        "start": 1,
+        "end": 5
+      },
+      "list": [12]
+    },
+    "counts": {
+      "list": [10,22,8,3,9]
+    }
+  },
+  "[Column_2]": {
+    "values": {
+      "prefix": "Column-2-",
+      "range": {
+        "start": 1,
+        "end": 9
+      }
+    },
+    "counts": {
+      "list": [1,2,3,4,5,6,7,8]
+    }
+  },
+  "[Column_3]": {
+    "values": {
+      "prefix": "Column-3-",
+      "list": [48,9,2,10,82]
+    },
+    "counts": {
+      "list": [12,2,9,21,8]
+    }
+  },
+  "[Column_4]": {
+    "values": {
+      "prefix": "Column-4-",
+      "range": {
+        "start": 1,
+        "end": 11
+      },
+      "list": [10,20]
+    },
+    "counts": {
+      "values": {
+        "list": [10,12,1,22]
+      },
+      "counts": {
+        "list": [3,4,2,3]
+      }
+    }
+  },
+  "[Column_5]": {
+    "values": {
+      "list": ["","","test","ab-32"]
+    }
+  }
+}

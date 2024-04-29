@@ -22,12 +22,6 @@ class NumAlphaConversions:
     def __init__(self):
         self.base = 26
 
-    def _map_sum_pow(self, sum_pow, pow_indices):
-        pow_sums = pow_indices.copy()
-        for pow_index, result in sum_pow.items():
-            pow_sums[pow_indices == pow_index] = result
-        return pow_sums
-
     def _offset(self, pow_indices):
         """
         Returns pow_indices - 1.
@@ -108,6 +102,8 @@ class NumAlphaConversions:
         Stack overflow solution translated to numpy.
 
         This is too slow.
+
+        Returns (outputs, pow_indices).
         """
         indices = self._pre_process_indices(indices)
         outputs = numpy.repeat('', repeats=indices.shape[0])
@@ -140,8 +136,9 @@ class NumAlphaConversions:
             pow_indices
         )
 
-    def _find_affected_array_indices(self, adjust_alpha: bool, sum_pow: dict, array_indices=numpy.array([]),
-                                     indices=numpy.array([]), pow_indices=numpy.array([])):
+    def _find_affected_array_indices(self, adjust_alpha: bool, sum_pow: numpy.ndarray[int],
+                                     array_indices: numpy.ndarray[int], indices: numpy.ndarray[int],
+                                     pow_indices: numpy.ndarray[int]):
         """
         SUMMARY
         1: Find affected indices based on power index.
@@ -243,6 +240,7 @@ class NumAlphaConversions:
         # Useful for debugging purposes to see searched indices and powers.
         # searched_indices = indices[search_multiples]
         # searched_powers = pow_indices[search_multiples]
+        # power_sums = sum_pow[search_multiples]
         affected_non_multiples = []
         if search_multiples.any():
             # int array
@@ -253,7 +251,7 @@ class NumAlphaConversions:
 
             # int array
             # +pow(26, 1), +pow(26, 2)+pow(26, 1)
-            exclusive_end_range = indices[search_multiples] + self._map_sum_pow(sum_pow, pow_indices[search_multiples])
+            exclusive_end_range = indices[search_multiples] + sum_pow[search_multiples]
 
             # (From Gemini) Numpy equivalent of zip, range, and flatten functions combined.
             # Note: vectorize doesn't work.
@@ -269,6 +267,8 @@ class NumAlphaConversions:
         """
         OVERVIEW
         Ref: https://stackoverflow.com/a/57655623
+
+        Returns (outputs, pow_indices).
 
         Alternate numpy translation of stack overflow solution. Doesn't subtract from indices.
 
@@ -303,7 +303,7 @@ class NumAlphaConversions:
         outputs = numpy.repeat('', repeats=indices.shape[0])
         pow_indices = numpy.repeat(0, repeats=indices.shape[0])
         not_stopping = numpy.repeat(True, repeats=indices.shape[0])
-        sum_pow = {}
+        sum_pow = pow_indices.copy()
 
         # Ignore negative indices.
         not_stopping[indices < 0] = False
@@ -339,9 +339,11 @@ class NumAlphaConversions:
             not_stopping[adjust_stop] = False
             pow_indices[not_stopping] += 1
 
-            max_pow = pow_indices.max()
-            prev_pow = max_pow - 1
-            sum_pow[max_pow] = pow(self.base, max_pow) + (sum_pow[prev_pow] if prev_pow in sum_pow else 0)
+            sum_pow = numpy.where(
+                not_stopping,
+                sum_pow + numpy.power(self.base, pow_indices),
+                sum_pow
+            )
         return (
             outputs,
             pow_indices
