@@ -1,7 +1,5 @@
 /.venv
 /.idea
-__pycache__
-
-# Ignore everything except json files
 files/
+__pycache__
 .env
