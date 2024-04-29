@@ -5,7 +5,7 @@ import unittest
 import numpy
 import pandas
 
-from load_comparators import files_directory, is_remote, load_prod, load_staging_1, load_staging_2
+from load_comparators import files_directory, json_directory, is_remote, load_prod, load_staging_1, load_staging_2
 from utils.comparator import DataFrameComparator
 
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +28,7 @@ class TestComparators(unittest.TestCase):
         """
         Ref: remote_comparator.json.example
         """
-        json_df = pandas.read_json(os.path.join(files_directory, json_path))
+        json_df = pandas.read_json(os.path.join(json_directory, json_path))
 
         def create_mask(level_1_term: str, level_2_term: str = None) -> numpy.ndarray:
             return json_df.loc[level_1_term].map(

@@ -9,6 +9,7 @@ files_directory = os.path.join(os.path.dirname(__file__), 'files')
 if not os.path.exists(files_directory):
     os.mkdir(files_directory)
 
+json_directory = os.path.join(os.path.dirname(__file__), 'json')
 is_remote = os.getenv("GITHUB_ACTIONS") is not None or os.getenv("GITLAB_CI") is not None
 
 def load(excel_path: str, sheet_name: str, start_row: int, na_filter=False):
