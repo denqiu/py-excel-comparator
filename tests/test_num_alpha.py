@@ -11,8 +11,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 class TestNumAlpha(unittest.TestCase):
-    def __init__(self, methodName="test"):
-        super().__init__(methodName=methodName)
+    def setUp(self):
         self.tester = NumAlphaConversions()
     
     def _write_alpha_output(self, func, indices, letter_type: LetterType):
@@ -21,6 +20,7 @@ class TestNumAlpha(unittest.TestCase):
         test_completed = numpy.char.add(numpy.char.add(test_completed, ' - '), pow_indices.astype(str))
         with open(os.path.join(files_directory, f"output_{func.__name__}.txt"), 'w') as f:
             f.writelines("\n".join(test_completed))
+        print(f"Completed writing output for '{func.__name__}'.")
 
     @unittest.skip(reason="Slow. Don't need to use timer.")
     def test_slow_num_to_alpha(self):

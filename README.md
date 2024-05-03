@@ -6,12 +6,15 @@
     <br>
     Description:
     <ul>
-        <li>A simple data-comparison tool to compare Excel files.</li>
+        <li>A data-comparison tool to compare Excel files.</li>
     </ul>
     Important:
     <ul>
         <li><code>.env</code>: Contains environment (editable) variables.</li>
-        <li><code>load_comparators.py</code>: Load comparators from files directory.</li>
-        <li><code>remote_comparator.json.example</code>: Template for storing Excel data in JSON format as repository variable, mainly for testing purposes. Files created from this template are located in files directory.</li>
+        <li><code>load_comparators.py</code>: Load comparators and provide paths to excel/json folders.</li>
+        <li>
+            <code>remote_comparator.json.example</code>: Template for storing Excel data in JSON format, 
+            mainly for testing purposes. Files created from this template are located in json folder.
+        </li>
     </ul>
 </div>

@@ -1,12 +1,12 @@
-import os
 import logging
+import os
+import time
+import traceback
 import unittest
-
-import numpy
 import pandas
 
-from load_comparators import files_directory, json_directory, is_remote, load_prod, load_staging_1, load_staging_2
-from utils.comparator import DataFrameComparator
+import utils.comparator
+import load_comparators
 
 logging.basicConfig(level=logging.INFO)
 
@@ -18,92 +18,131 @@ class TestComparators(unittest.TestCase):
     Arrays are then placed inside JSON files.
     """
 
-    def __init__(self, methodName="test"):
-        super().__init__(methodName=methodName)
-        self.prod = DataFrameComparator(pandas.DataFrame())
-        self.staging_1 = DataFrameComparator(pandas.DataFrame())
-        self.staging_2 = DataFrameComparator(pandas.DataFrame())
+    def setUp(self):
+        self.prod = pandas.DataFrame()
+        self.staging_1 = pandas.DataFrame()
+        self.staging_2 = pandas.DataFrame()
+        self.timer = time.perf_counter()
 
-    def _create_comparator(self, json_path: str):
-        """
-        Ref: remote_comparator.json.example
-        """
-        json_df = pandas.read_json(os.path.join(json_directory, json_path))
-
-        def create_mask(level_1_term: str, level_2_term: str = None) -> numpy.ndarray:
-            return json_df.loc[level_1_term].map(
-                lambda d: type(d) is dict and (level_2_term in d if level_2_term else True)).to_numpy()
-
-        # numpy.arange on range
-        mask = create_mask(level_1_term="values", level_2_term="range")
-        json_df.loc["values", mask].map(lambda d: d.update({
-            "range": numpy.arange(*d["range"].values())
-        }))
-
-        # numpy.concatenate on order
-        mask = create_mask(level_1_term="values", level_2_term="order")
-        json_df.loc["values", mask].map(lambda d: d.update({
-            "list": numpy.concatenate([d.pop(key) for key in d.pop("order")])
-        }))
-
-        # Every key except prefix should be a list. Concatenate them.
-        mask = create_mask(level_1_term="values")
-
-        def updater(d: dict):
-            keys = [key for key in d.keys() if key != "prefix"]
-            d.update({"list": numpy.concatenate([d.pop(key) for key in keys])})
-
-        json_df.loc["values", mask].map(updater)
-
-        # numpy.repeat where "counts" at Level 1 has "values" and "counts".
-        mask = create_mask(level_1_term="counts", level_2_term="counts")
-        json_df.loc["counts", mask].map(lambda d: d.update({
-            "list": numpy.repeat(d.pop("values")["list"], d.pop("counts")["list"])
-        }))
-
-        # Now, "counts" at Level 1 should be ready. numpy.repeat can take in Level 1 values and counts.
-        mask = create_mask(level_1_term="counts")
-        lists = numpy.frompyfunc(numpy.repeat, nin=2, nout=1)(
-            json_df.loc["values", mask].map(lambda d: d["list"]).to_numpy(),
-            json_df.loc["counts", mask].map(lambda d: d["list"]).to_numpy()
-        )
-        numpy.frompyfunc(lambda d, lst: d.update({"list": lst}), nin=2, nout=1)(
-            json_df.loc["values", mask].to_numpy(),
-            lists
-        )
-        json_df = json_df.drop("counts")
-
-        # numpy.char.mod where "prefix" is specified.
-        mask = create_mask(level_1_term="values", level_2_term="prefix")
-        json_df.loc["values", mask].map(lambda d: d.update({
-            "list": numpy.char.mod(f"{d.pop("prefix")}%s", d["list"])
-        }))
-
-        # Inherit "values" where "column" is specified.
-        mask = json_df.loc["column"].notnull().to_numpy()
-        json_df.loc["values", mask] = json_df.loc["column", mask].map(lambda col: json_df.loc["values", col])
-        json_df = json_df.drop("column")
-
-        # All done. Now convert to comparator.
-        return DataFrameComparator(pandas.DataFrame({
-            col: json_df.loc["values", col]["list"] for col in json_df.columns
-        }))
-
-    def test_load_data(self):
-        if is_remote:
-            self.prod = self._create_comparator(json_path="remote_prod.json")
-            self.staging_1 = self._create_comparator(json_path="remote_staging_1.json")
-            self.staging_2 = self._create_comparator(json_path="remote_staging_2.json")
+    def _load_data(self):
+        if load_comparators.is_remote:
+            self.prod = utils.comparator.from_json(os.path.join(
+                load_comparators.json_directory, "remote_prod.json"))
+            self.staging_1 = utils.comparator.from_json(os.path.join(
+                load_comparators.json_directory, "remote_staging_1.json"))
+            self.staging_2 = utils.comparator.from_json(os.path.join(
+                load_comparators.json_directory, "remote_staging_2.json"))
             logging.info("JSON files loaded successfully for testing purposes.")
         else:
-            self.prod = load_prod()
-            self.staging_1 = load_staging_1()
-            self.staging_2 = load_staging_2()
+            self.prod = load_comparators.load_prod()
+            self.staging_1 = load_comparators.load_staging_1()
+            self.staging_2 = load_comparators.load_staging_2()
             logging.info("Excel files loaded successfully for testing purposes!")
 
-    def test_comparison_functions(self):
-        if os.path.exists(files_directory):
-            pass
+    def _run_comparison(self, func, title: str, matcher_data_frame: pandas.DataFrame, kwargs: dict):
+        start = time.perf_counter()
+        func(self.prod, matcher_data_frame, **kwargs)
+        end = time.perf_counter() - start
+        print(f"Timer: {time.perf_counter() - self.timer}")
+        print(f"{title}: '{func.__name__}' compared '{kwargs["column"]}' in {end} seconds.")
+
+    def _loop_args(self, func, func_args, matchers):
+        """
+        Loop over function arguments and matchers to run comparisons.
+
+        Return if argument triggers an error.
+        Assumes that error would be the same for other arguments provided to function, like asyncio.TaskGroup.
+        """
+        for args in func_args:
+            for title, matcher_df in matchers.items():
+                kwargs = args.copy()
+                if "fast_" in func.__name__:
+                    kwargs = {
+                        **kwargs,
+                        "lookup_indices": {col: i for i, col in enumerate(self.prod.columns) if
+                                           col in kwargs["lookup_columns"]},
+                        "matcher_lookup_indices": {col: i for i, col in enumerate(matcher_df.columns) if
+                                                   col in kwargs["lookup_columns"]}
+                    }
+                try:
+                    self._run_comparison(func, title, matcher_df, kwargs)
+                except:
+                    traceback.print_exc()
+                    return
+
+    def _gather_comparisons(self):
+        """
+        On remote pipeline, run only fastest function.
+
+        On local, run through all functions.
+
+        1: Compare on one lookup column (Supplier Id).
+
+        2: Compare on multiple lookup columns with duplicates combined (Test Group).
+
+        3: Compare on multiple lookup columns without duplicates combined (Parameter Id).
+
+        ASYNCIO NOTES
+        "async/await" keywords behave the same in Javascript.
+        "gather" and "wait" functions behave similarly to Javascript's Promise.all and Promise.race.
+
+        PYTHON/JAVASCRIPT DIFFERENCES
+        Calling async function synchronously returns a coroutine object.
+        It does not execute code however it does execute code in Javascript.
+
+        async def func():
+        # In Javascript, this would've executed function.
+        # However, in Python, this doesn't execute the function. It simply returns coroutine.
+        func()
+
+        PSEUDOCODE
+        # See video in wiki: https://github.com/denqiu/py-excel-comparator/wiki/Asyncio-Behaviors
+        async def test(group_id, test_id, delay):
+            await asyncio.sleep(delay)
+            print(f"Group: {group_id}, Test: {test_id}, Delay: {delay}")
+
+        async def run_group(group_id):
+            n = random_number()
+            data = [(1, 5), (2, 10)]
+            await asyncio.gather, await asyncio.wait, asyncio.create_task, asyncio.ensure_future, or TaskGroup
+            -> test(group_id, test_id, delay + n) for test_id, delay in data
+
+        async def main():
+            await asyncio.gather or asyncio.wait -> run_group(group_id - range 1 to 4)
+
+        asyncio.run(main())
+        """
+        comp_utils = utils.comparator
+        funcs = [
+            comp_utils.fastest_sql_vectorized
+        ]
+        if not load_comparators.is_remote:
+            funcs = [
+                *funcs,
+                comp_utils.fast_manual_vectorized,
+                comp_utils.slow_pandas,
+                comp_utils.slow_json
+            ]
+        matchers = {
+            "Staging Export 1": self.staging_1,
+            "Staging Export 2": self.staging_2
+        }
+        func_args = [
+            {"column": "Supplier Conclusion", "matcher_column": "Supplier Conclusion",
+             "lookup_columns": ["Supplier Id"]},
+            {"column": "Parameter Conclusion", "matcher_column": "Parameter Conclusion",
+             "lookup_columns": ["Supplier Id", "Test Request Id", "Test Group Id", "Test Group", "Parameter Id"]},
+            {"column": "Test Group Conclusion", "matcher_column": "Test Group Conclusion",
+             "lookup_columns": ["Supplier Id", "Test Request Id", "Test Group Id", "Test Group"]}
+        ]
+        # Decided to remove async functionality for now.
+        # Re-ordered args to predict time completion: Suppliers, Parameters, Test Groups.
+        for func in funcs:
+            self._loop_args(func, func_args, matchers)
+
+    def test_comparisons(self):
+        self._load_data()
+        self._gather_comparisons()
 
 
 if __name__ == '__main__':
