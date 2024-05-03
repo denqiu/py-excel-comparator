@@ -12,12 +12,6 @@ logging.basicConfig(level=logging.INFO)
 
 
 class TestComparators(unittest.TestCase):
-    """
-    See "adjacent.count_adjacent_elements" to re-create test data via arrays instead of excel files (for remote).
-
-    Arrays are then placed inside JSON files.
-    """
-
     def setUp(self):
         self.prod = pandas.DataFrame()
         self.staging_1 = pandas.DataFrame()
