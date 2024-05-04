@@ -1,7 +1,12 @@
+# OVERVIEW
 # Template to describe data structure I developed to manage Excel data.
 # Comments are ok because this is not actually a JSON file.
 # Please make sure to remove comments in JSON file because comments are not supported!
 
+# PROCESS
+# See "adjacent.count_adjacent_elements" to re-create list data.
+
+# TERMS
 # Level 1 Terms:
 # * column: (Level 1 only) If specified, values in targeted column are exactly the same.
 # * values: Represent values/elements that go in the column, such as strings and numbers.
@@ -15,6 +20,7 @@
 # * range: If specified, "numpy.arange" is used to generate a range of numbers.
 # * list: A list of elements.
 
+# EXAMPLES
 {
   "[Column_1]": {
 # * Expected output: [*["Column-1-12"] * 10, *["Column-1-1"] * 22, *["Column-1-2"] * 8, *["Column-1-3"] * 3, *["Column-1-4"] * 9]
