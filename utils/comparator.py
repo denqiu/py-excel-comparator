@@ -65,23 +65,8 @@ def fastest_sql_vectorized(data_frame: pandas.DataFrame, matcher_data_frame: pan
 
     From Gemini after taking in the pandas version.
 
-    Occurrence query translated by ChatGPT.
-
     This function utilizes numpy's vectorization concept (column-wise), leveraging C operations under the hood,
     and pandas to merge data on lookup columns. Pandas' merge function behaves like SQL.
-    This is the SQL solution (where GroupName has duplicate values and Item doesn't have duplicates):
-
-    SELECT t1.GroupName, t1.Item AS Item_x, t2.Item AS Item_y
-    FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY GroupName) AS Occurrence FROM table1) AS t1
-    LEFT JOIN (SELECT *, ROW_NUMBER() OVER (PARTITION BY GroupName) AS Occurrence FROM table2) AS t2
-    ON t1.GroupName = t2.GroupName AND t1.Occurrence = t2.Occurrence;
-
-    Resolves Cartesian product (and avoids Blue Screen of Death) during merge/left join on GroupName.
-
-    'self' has 42,000 rows and 'matcher' has 47,000 rows. Columns tested (to be updated later):
-        One lookup column (with duplicate values): 10 seconds/Blue screen of death.
-
-        Multiple lookup columns (w/o duplicate values combined): 300 milliseconds/800 milliseconds.
     """
     columns = check_columns(data_frame, [column, *lookup_columns])
     matcher_columns = check_columns(matcher_data_frame, [matcher_column, *lookup_columns])
@@ -133,11 +118,6 @@ def fast_manual_vectorized(data_frame: pandas.DataFrame, matcher_data_frame: pan
     From Gemini after providing info about BSOD. Turns out implementation is similar to the pandas version.
 
     This function utilizes numpy arrays to implement vectorization.
-
-    'self' has 42,000 rows and 'matcher' has 47,000 rows. Columns tested:
-        One lookup column (with duplicate values): 1 minute and 48 seconds.
-
-        Multiple lookup columns (w/o duplicate values combined): 8 minutes and 36 seconds.
     """
     check_columns(data_frame, [column, *lookup_columns])
     check_columns(matcher_data_frame, [matcher_column, *lookup_columns])
@@ -163,13 +143,10 @@ def slow_pandas(data_frame: pandas.DataFrame, matcher_data_frame: pandas.DataFra
     """
     See https://pythoninoffice.com/replicate-excel-vlookup-hlookup-xlookup-in-python/.
 
+    Comma fix: https://stackoverflow.com/questions/12182744/python-pandas-apply-a-function-with-arguments-to-a-series.
+
     This function utilizes the masking concept and applies a boolean numpy array for each lookup
     column per row to find matches.
-
-    'self' has 42,000 rows and 'matcher' has 47,000 rows. Columns tested:
-        One lookup column (with duplicate values): 4 minutes and 40 seconds.
-
-        Multiple lookup columns (w/o duplicate values combined): 30 minutes.
     """
     columns = check_columns(data_frame, [column, *lookup_columns])
     matcher_columns = check_columns(matcher_data_frame, [matcher_column, *lookup_columns])
@@ -192,11 +169,6 @@ def slow_json(data_frame: pandas.DataFrame, matcher_data_frame: pandas.DataFrame
     """
     This function uses Python dictionaries, which comes from the dataframe being converted to json.
     Then looks up columns on each row to find matches.
-
-    'self' has 42,000 rows and 'matcher' has 47,000 rows. Columns tested:
-        One lookup column (with duplicate values): 19 minutes and 20 seconds.
-
-        Multiple lookup columns (w/o duplicate values combined): 20 minutes.
     """
     check_columns(data_frame, [column, *lookup_columns])
     check_columns(matcher_data_frame, [matcher_column, *lookup_columns])

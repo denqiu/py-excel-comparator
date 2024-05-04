@@ -12,6 +12,9 @@ logging.basicConfig(level=logging.INFO)
 
 
 class TestComparators(unittest.TestCase):
+    """
+    Test results: https://github.com/denqiu/py-excel-comparator/wiki/Comparator-Test-Results
+    """
     def setUp(self):
         self.prod = pandas.DataFrame()
         self.staging_1 = pandas.DataFrame()
@@ -40,7 +43,7 @@ class TestComparators(unittest.TestCase):
         print(f"Timer: {time.perf_counter() - self.timer}")
         print(f"{title}: '{func.__name__}' compared '{kwargs["column"]}' in {end} seconds.")
 
-    def _loop_args(self, func, func_args, matchers):
+    def _run_function(self, func, func_args, matchers):
         """
         Loop over function arguments and matchers to run comparisons.
 
@@ -132,7 +135,7 @@ class TestComparators(unittest.TestCase):
         # Decided to remove async functionality for now.
         # Re-ordered args to predict time completion: Suppliers, Parameters, Test Groups.
         for func in funcs:
-            self._loop_args(func, func_args, matchers)
+            self._run_function(func, func_args, matchers)
 
     def test_comparisons(self):
         self._load_data()
