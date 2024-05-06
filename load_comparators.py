@@ -22,6 +22,8 @@ def load_excel(excel_path: str, sheet_name: str, start_row: int, na_filter=False
 
 
 def load_prod():
+    if is_remote:
+        return utils.comparator.from_json(os.path.join(json_directory, "remote_prod.json"))
     return load_excel(
         excel_path=os.path.join(files_directory, os.getenv("PROD_EXCELPATH")),
         sheet_name=os.getenv("PROD_SHEETNAME"),
@@ -30,6 +32,8 @@ def load_prod():
 
 
 def load_staging_1():
+    if is_remote:
+        return utils.comparator.from_json(os.path.join(json_directory, "remote_staging_1.json"))
     return load_excel(
         excel_path=os.path.join(files_directory, os.getenv("STAGING_1_EXCELPATH")),
         sheet_name=os.getenv("STAGING_1_SHEETNAME"),
@@ -38,6 +42,8 @@ def load_staging_1():
 
 
 def load_staging_2():
+    if is_remote:
+        return utils.comparator.from_json(os.path.join(json_directory, "remote_staging_2.json"))
     return load_excel(
         excel_path=os.path.join(files_directory, os.getenv("STAGING_2_EXCELPATH")),
         sheet_name=os.getenv("STAGING_2_SHEETNAME"),

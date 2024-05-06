@@ -22,18 +22,12 @@ class TestComparators(unittest.TestCase):
         self.timer = time.perf_counter()
 
     def _load_data(self):
+        self.prod = load_comparators.load_prod()
+        self.staging_1 = load_comparators.load_staging_1()
+        self.staging_2 = load_comparators.load_staging_2()
         if load_comparators.is_remote:
-            self.prod = utils.comparator.from_json(os.path.join(
-                load_comparators.json_directory, "remote_prod.json"))
-            self.staging_1 = utils.comparator.from_json(os.path.join(
-                load_comparators.json_directory, "remote_staging_1.json"))
-            self.staging_2 = utils.comparator.from_json(os.path.join(
-                load_comparators.json_directory, "remote_staging_2.json"))
-            logging.info("JSON files loaded successfully for testing purposes.")
+            logging.info("JSON files loaded successfully for testing purposes!")
         else:
-            self.prod = load_comparators.load_prod()
-            self.staging_1 = load_comparators.load_staging_1()
-            self.staging_2 = load_comparators.load_staging_2()
             logging.info("Excel files loaded successfully for testing purposes!")
 
     def _run_comparison(self, func, title: str, matcher_data_frame: pandas.DataFrame, kwargs: dict):
