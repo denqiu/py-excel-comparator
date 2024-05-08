@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    uses: denqiu/reusable-tools/.github/workflows/py-setup-test.yml@main
+    uses: denqiu/reusable-tools/.github/workflows/python/py-setup-test.yml@main
     with:
       version: 3.12
       install_file: requirements.txt
